@@ -1,20 +1,28 @@
 '''
 Delivery class, containing all the deliveries info and performing the Fee calculation.
+
+A simple caching mechanism is implemented with a dictionary, having as a key an univuque oid that is dependent on the parameters of the request and the object itself as a value.
+Once the cacheThreshold is reached, the cache is reset.
 '''
-from module.utils import Utils
+from Classes.utils import Utils
 maxDeliveryFeeValue = 1500
+cacheThreshold = 1000
 class Delivery(object):
+    cache={}
     cart_value = None
     delivery_distance = None
     number_of_items = None
     time = None
     shippingFee = None
+    oid = None
     def __init__(self, query_components, cart_value = None, delivery_distance = None, number_of_items = None, time = None):
         '''
         The constructor is designed to handle both a dictionary of variables (default) or single values (non-mandatory).
         In the first case, values are extracted from the dictionary using the static method Delivery.extractDataFromDict()
         Values are first validated using the static method validateData(), 
         then assigned to the freshly create object and finally the method updateShippingFee() is called to calculate the Shipping Fee for the delivery.
+
+        Finally, an univoque OID is computed for the supplied parameters and the object is stored in the cache. 
         '''
         if(query_components != None):
             (cart_value, delivery_distance, number_of_items, time) = Delivery.extractDataFromDict(query_components)
@@ -25,7 +33,32 @@ class Delivery(object):
         self.time = time
         self.shippingFee = 0
         self.updateShippingFee()
-            
+        self.oid = str(self.cart_value) + "/" + str(self.delivery_distance)  + "/" + str(self.number_of_items) + "/" + str(self.time)
+        self.addToCache()
+        
+    @staticmethod    
+    def retrieveFromCache(query_components, cart_value = None, delivery_distance = None, number_of_items = None, time = None):
+        '''
+        Interrogate the cache for an object with the same oid. Return null in case the object is not found.
+        '''
+        if(query_components != None):
+            (cart_value, delivery_distance, number_of_items, time) = Delivery.extractDataFromDict(query_components)
+        Delivery.validateData(cart_value, delivery_distance, number_of_items, time)
+        oid = str(cart_value) + "/" + str(delivery_distance)  + "/" + str(number_of_items) + "/" + str(time)
+        try:
+            cachedObject = Delivery.cache[oid]
+        except KeyError:
+            return None
+        return cachedObject
+
+    def addToCache(self):
+        '''
+        Add an object to the cache. Check the cache size and reset it in case it exceedes the threshold. 
+        '''
+        if(len(Delivery.cache) > cacheThreshold):
+            Delivery.cache = {}
+        Delivery.cache[self.oid] = self
+
     def getShippingFee(self):
         '''Simple getter method'''
         return self.shippingFee

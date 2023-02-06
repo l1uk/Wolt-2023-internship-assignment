@@ -1,5 +1,5 @@
 '''
-Utilities class, clearly only static methods are defined.
+Utilities class, only static methods are defined.
 '''
 import re
 from dateutil import parser

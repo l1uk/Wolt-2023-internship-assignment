@@ -1,27 +1,20 @@
-#!flask/bin/python3
 '''
-Simple HTTP server with one GET endpoint. Implemented by overriding the BaseHTTPRequestHandler class used by the HTTPServer class to reply to requests 
-and serve files normally. The parameters in the URL are delimited by an initial ? and specified in standard GET notation (<Name>=<Value>) separated by &.
-Since we have one single endpoint, only the query parameters of the request are checked and not the endpoint. Leverages the Delivery class specified in the modules.
+Custom RequestHandler class (Parent Class: BaseHTTPRequestHandler), used for replying to HTTP request according to the desidered logic.
 
-For instance, these are all valid requests:
-localhost:8000/getFee?cart_value=999&delivery_distance=10&number_of_items=1&time=2021-01-14T19:00:00Z ;
-localhost:8000/getDeliveryFee?cart_value=999&delivery_distance=10&number_of_items=1&time=2021-01-14T19:00:00Z ;
-localhost:8000/?cart_value=999&delivery_distance=10&number_of_items=1&time=2021-01-14T19:00:00Z ;
-localhost:8000?cart_value=999&delivery_distance=10&number_of_items=1&time=2021-01-14T19:00:00Z.
+In particular, the do_GET method is overrided to parse the request parameters and create a Delivery object, which attributes will be used for the response. 
+The parameters in the URL are delimited by an initial ? and specified in standard GET notation (<Name>=<Value>) separated by &.
+
+
+Since there's one single endpoint for this case, only the query parameters of the request are checked and not the endpoint. 
+Leverages the Delivery class specified in the modules.
 '''
-
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler
 from http import HTTPStatus
 import json
-import time
 from urllib.parse import urlparse, parse_qs
-from module.delivery import Delivery
-
-
+from Classes.delivery import Delivery
 
 class _RequestHandler(BaseHTTPRequestHandler):
-    # Inspired from https://gist.github.com/nitaku/10d0662536f37a087e1b
     associatedDeliveryObject = None
     responseCode = HTTPStatus.OK.value
     errorMessage = {"error": "Generic error"}
@@ -61,18 +54,3 @@ class _RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(self.responseValue).encode('utf-8'))
         else:
             self.wfile.write(json.dumps(self.errorMessage).encode('utf-8'))    
-
-
-
-def run_server():
-    '''
-    Simple method that instantiates the HTTPServer Object with the custom RequestHandler class and start it.
-    '''
-    server_address = ('', 8000)
-    httpd = HTTPServer(server_address, _RequestHandler)
-    print('serving at %s:%d' % server_address)
-    httpd.serve_forever()
-
-
-if __name__ == '__main__':
-    run_server()
