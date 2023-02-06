@@ -7,7 +7,7 @@ It provides a single endpoint HTTP API capable of serving a delivery fee with a 
 
 
 Two different solutions are implemented: the first one makes use of the Flask framework, while the second one is implemented using just stock Python. 
-For more detailed information, please refer to the project documentation (found inside the html folder).
+For more detailed information, please refer to the [project documentation](https://l1uk.github.io).
 
 ## Setup
 
